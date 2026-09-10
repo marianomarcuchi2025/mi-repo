@@ -32,6 +32,10 @@ def _norm(s: str) -> str:
     return re.sub(r"[^A-Z0-9]", "", s.upper())
 
 
+def _strip_file_ext(s: str) -> str:
+    return re.sub(r"\.(pdf|doc|docx|xls|xlsx|txt|odt|ods)$", "", s, flags=re.IGNORECASE)
+
+
 def _add_aviso(datos: Extraccion, mensaje: str) -> None:
     if mensaje not in datos.avisos:
         datos.avisos.append(mensaje)
@@ -65,8 +69,7 @@ def partir_numero_gde(crudo: str) -> tuple[str, str, str]:
         raise ValueError(f"Formato invalido: {crudo}")
     return prefijo, numero, sufijo
 
-def _strip_file_ext(s: str) -> str:
-    return re.sub(r"\.(pdf|doc|docx|xls|xlsx|txt|odt|ods)$", "", s, flags=re.IGNORECASE)
+
 def _enriquecer_gde(datos, crudo, texto, del_encabezado, del_nombre):
     if crudo:
         try:
@@ -77,10 +80,15 @@ def _enriquecer_gde(datos, crudo, texto, del_encabezado, del_nombre):
     if crudo and datos.gde_numero not in (None, ""):
         datos.referencia_externa = crudo
 
-        if del_encabezado and del_nombre and _norm(_strip_file_ext(del_encabezado)) != _norm(_strip_file_ext(del_nombre)):
-        _add_aviso(datos,
-            f"El documento dice {del_encabezado} pero el archivo se llama "
-            f"{del_nombre}. Confirme cual corresponde.")
+    if del_encabezado and del_nombre:
+        a = _norm(_strip_file_ext(del_encabezado))
+        b = _norm(_strip_file_ext(del_nombre))
+        if a != b:
+            _add_aviso(
+                datos,
+                f"El documento dice {del_encabezado} pero el archivo se llama "
+                f"{del_nombre}. Confirme cual corresponde.",
+            )
 
     texto_up = texto.upper()
     crudo_up = crudo.upper() if crudo else ""
@@ -90,20 +98,20 @@ def _enriquecer_gde(datos, crudo, texto, del_encabezado, del_nombre):
     ))
     if mencionados:
         datos.mencionados = mencionados
-        _add_aviso(datos,
+        _add_aviso(
+            datos,
             f"El documento menciona {len(mencionados)} numero(s) GDE "
-            f"adicional(es) como antecedente.")
+            f"adicional(es) como antecedente.",
+        )
 
 
 def detectar_orden(texto: str) -> str | None:
-    m = re.search(r"ORDEN\s+DEL?\s+D[IÍ]A\s*[:\-]?\s*([A-Z0-9\-]+)",
-                  texto, re.IGNORECASE)
+    m = re.search(r"ORDEN\s+DEL?\s+D[IÍ]A\s*[:\-]?\s*([A-Z0-9\-]+)", texto, re.IGNORECASE)
     return m.group(1) if m else None
 
 
 def detectar_termino(texto: str):
-    m = re.search(r"t[eé]rmino\s+hasta\s+(\d{1,2})/(\d{1,2})/(\d{4})",
-                  texto, re.IGNORECASE)
+    m = re.search(r"t[eé]rmino\s+hasta\s+(\d{1,2})/(\d{1,2})/(\d{4})", texto, re.IGNORECASE)
     if m:
         d, mo, y = int(m.group(1)), int(m.group(2)), int(m.group(3))
         try:
