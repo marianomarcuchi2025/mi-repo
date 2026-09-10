@@ -49,15 +49,24 @@ def _primer_match(detector, *fuentes):
 def partir_numero_gde(crudo: str) -> tuple[str, str, str]:
     if not crudo:
         raise ValueError("Numero vacio")
-    partes = crudo.split("-", 2)
+    partes = crudo.split("-")
     if len(partes) < 2:
         raise ValueError(f"Formato invalido: {crudo}")
     prefijo = partes[0]
-    numero = partes[1]
-    sufijo = partes[2] if len(partes) > 2 else ""
+    resto = partes[1:]
+    split_idx = len(resto)
+    for i, p in enumerate(resto):
+        if p and p.isalpha():
+            split_idx = i
+            break
+    numero = "-".join(resto[:split_idx])
+    sufijo = "-".join(resto[split_idx:])
+    if not numero:
+        raise ValueError(f"Formato invalido: {crudo}")
     return prefijo, numero, sufijo
 
-
+def _strip_file_ext(s: str) -> str:
+    return re.sub(r"\.(pdf|doc|docx|xls|xlsx|txt|odt|ods)$", "", s, flags=re.IGNORECASE)
 def _enriquecer_gde(datos, crudo, texto, del_encabezado, del_nombre):
     if crudo:
         try:
@@ -68,7 +77,7 @@ def _enriquecer_gde(datos, crudo, texto, del_encabezado, del_nombre):
     if crudo and datos.gde_numero not in (None, ""):
         datos.referencia_externa = crudo
 
-    if del_encabezado and del_nombre and _norm(del_encabezado) != _norm(del_nombre):
+        if del_encabezado and del_nombre and _norm(_strip_file_ext(del_encabezado)) != _norm(_strip_file_ext(del_nombre)):
         _add_aviso(datos,
             f"El documento dice {del_encabezado} pero el archivo se llama "
             f"{del_nombre}. Confirme cual corresponde.")
