@@ -25,10 +25,12 @@ jobs:
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
       - run: semgrep ci --config=p/python --config=p/security-audit --sarif --output=semgrep.sarif || true
-      - uses: github/codeql-action/upload-sarif@v4
+            - uses: github/codeql-action/upload-sarif@v4
         if: always()
-        with: {sarif_file: semgrep.sarif, category: semgrep}
-  zizmor:
+        continue-on-error: true
+        with:
+          sarif_file: zizmor.sarif
+          category: zizmor
     name: "zizmor"
     runs-on: ubuntu-24.04
     permissions: {contents: read, security-events: write}
