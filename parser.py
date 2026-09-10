@@ -7,7 +7,7 @@ from datetime import date
 from pathlib import Path
 
 
-PATRON_GDE = re.compile(r"\b[A-Z]{2,4}-\d{4}-\d+-[A-Z]+-\d+\b")
+PATRON_GDE = re.compile(r"\b[A-Z]{2,4}-\d{4}-\d+-[A-Z]+-[A-Z0-9]+\b")
 
 
 @dataclass
