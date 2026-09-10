@@ -1,0 +1,13 @@
+[project]
+name = "mi-repo"
+version = "0.1.0"
+requires-python = ">=3.10"
+
+[tool.bandit]
+targets = ["parser.py"]
+exclude_dirs = ["tests", ".venv"]
+skips = ["B101"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
